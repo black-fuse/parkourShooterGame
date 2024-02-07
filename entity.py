@@ -13,7 +13,9 @@ class Entity(NodePath):
             self.entity.setTexture(texture)
         
         if collider == 'box':
-            Physics.applyBoxCollider(base, self.entity)
+            self.collider = Physics.applyBoxCollider(base, self.entity)
+        if collider == 'dynamic':
+            self.collider = Physics.applyDynamicBoxCollider(base, self.entity)
 
         self.entity.setPos(position)
         self.entity.setHpr(rotation)
