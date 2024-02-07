@@ -3,7 +3,7 @@ from physics import Physics
 from bcolors import bcolors
 
 class Entity(NodePath):
-    def __init__(self, base, position = (0, 0, 0), rotation = (0, 0, 0), scale = (1, 1, 1), texture = None, model = "models/cube", collider = None, color = (1, 1, 1, 1)):
+    def __init__(self, base, position = (0, 0, 0), rotation = (0, 0, 0), scale = (1, 1, 1), texture = None, model = "models/cube", collider = None, color = (1, 1, 1, 1), double_sided = False):
         
         if not model == None:
             self.entity = base.loader.loadModel(model)

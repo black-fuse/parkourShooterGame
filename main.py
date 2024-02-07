@@ -1,8 +1,12 @@
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import loadPrcFile, Vec3
 from panda3d.bullet import BulletWorld, BulletDebugNode
+from direct.gui.OnscreenText import OnscreenText
+from direct.gui.DirectGui import *
+
 from entity import Entity
 from lighting import Lighting
+from scene import scene
 import random
 
 class window(ShowBase):
@@ -10,20 +14,20 @@ class window(ShowBase):
         loadPrcFile("config/config.prc")
         super().__init__(fStartDirect, windowType)
 
-        ShowBase.setBackgroundColor(self, 0.0, 0.0, 0.0, 1.0)
-
-        self.bullet_world = BulletWorld()
-        self.bullet_world.setGravity(Vec3(0, 0, -9.81))
-
-        Entity(self, scale=(10,10,1), color=(1,0,0,1))
-        Entity(self, position=(1, 1, 1), color=(0,0,0.3,1))
-
-        for x in range(500):
-            Entity(self, position=(random.randint(-100,100), random.randint(-100,100), random.randint(-100,100)), scale=(0.2,0.2,0.2))
-
-        
-        #Lighting(self, False)
+        self.OpenMenu()
     
+    def OpenMenu(self):
+        self.StartButton = DirectButton(text="start",command=self.LoadScene,scale=0.3)
+        self.QuitButton = DirectButton(text="quit", command=quit, scale=0.3)
+
+        self.QuitButton.setPos((0,0,-0.8))
+
+    def LoadScene(self):
+        self.camLens.setFov(90.0)
+        self.camLens.setNearFar(0.1, 10000.0)
+        scene(self)
+        self.StartButton.destroy()
+        self.QuitButton.destroy()
 
 
     def update(self, task):
