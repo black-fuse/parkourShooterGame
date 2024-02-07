@@ -1,6 +1,6 @@
 from panda3d.bullet import BulletBoxShape, BulletRigidBodyNode, BulletPlaneShape
 
-class physics():
+class Physics():
     def applyBoxCollider(self, node_path):
         col_shape = BulletBoxShape((0.5, 0.5, 0.5))
 
