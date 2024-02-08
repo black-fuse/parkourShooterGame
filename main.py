@@ -14,7 +14,6 @@ class window(ShowBase):
         loadPrcFile("config/config.prc")
         super().__init__(fStartDirect, windowType)
 
-
         self.task_mgr.add(self.update, "update funciton")
         self.clock = ClockObject().getGlobalClock()
 
@@ -22,6 +21,19 @@ class window(ShowBase):
         self.bullet_world = BulletWorld()
         self.bullet_world.setGravity(Vec3(0, 0, -9.81))
 
+
+        self.debugCollider = True
+
+        if self.debugCollider:
+            debugNode = BulletDebugNode("debug_collider")
+            debugNode.showWireframe(True)
+            debugNode.showConstraints(True)
+            debugNode.showBoundingBoxes(False)
+            debugNode.showNormals(False)
+            debugNP = self.render.attachNewNode(debugNode)
+            debugNP.show()
+            self.bullet_world.setDebugNode(debugNP.node())
+            
 
         self.OpenMenu()
     

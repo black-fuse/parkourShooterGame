@@ -1,6 +1,5 @@
 from math import sin, cos, radians
 from panda3d.core import Vec3, ClockObject, WindowProperties
-from panda3d.bullet import BulletCharacterControllerNode
 from entity import Entity
 
 class ship:
@@ -29,6 +28,7 @@ class ship:
         self.base.taskMgr.add(self.update_cam, "updates the camera")
 
         self.mouse_hidden = base.config.GetBool("cursor-hidden", 0)
+        base.accept("escape", self.toggleMouseVis)
 
 
         pass
@@ -85,11 +85,16 @@ class ship:
             self.base.win.movePointer(0, display_center[0], display_center[1])
 
 
-        velocity = self.forward * self.BaseSpeed * dt
 
+        velocity = self.forward * self.BaseSpeed * dt
 
         key_down = self.base.mouseWatcherNode.isButtonDown
         if key_down("w"):
             velocity += self.forward * self.BaseSpeed * self.Speed * dt
+            print(velocity)
         
-        self.shipObject.collider.node().setLinearMovement((velocity * self.speed) / dt, False)
+        self.shipObject.collider.node().setLinearVelocity(velocity * 40.0)
+        self.base.camera.setPos(self.CamPos)
+
+
+        return task.cont
