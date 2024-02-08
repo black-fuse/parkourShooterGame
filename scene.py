@@ -5,6 +5,7 @@ from direct.filter.CommonFilters import CommonFilters
 from camera import CameraController
 from entity import Entity
 from ship import ship
+from lighting import Lighting
 import random
 
 class scene():
@@ -12,6 +13,7 @@ class scene():
         self.base = base
         self.clock = ClockObject().getGlobalClock()
 
+        Lighting(base)
         #CameraController(base)
         ship(base)
         cf = CommonFilters(base.win, base.cam)
@@ -23,6 +25,9 @@ class scene():
         
         skybox = Entity(base, scale = (1000, 1000, 1000), texture='textures/skybox/cubemap.png', model = "models/skybox.egg")
         skybox.entity.setTwoSided(True)
+
+        Entity(base, position = (0,10,-2),rotation = (0,90,0), collider = 'dynamic', color=(0.2, 0.2, 0.2, 1), model='models/ship.obj')
+
 
         for x in range(500):
             Entity(base, model='models/sphere', position=(random.randint(-100,100), random.randint(-100,100), random.randint(-100,100)), scale=(0.2,0.2,0.2), color = (1, random.uniform(0.8,1), random.uniform(0.5,1), 1))

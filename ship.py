@@ -1,37 +1,35 @@
 from math import sin, cos, radians
-from panda3d.core import Vec3, ClockObject, WindowProperties
+from panda3d.core import Vec3, ClockObject, WindowProperties, loadPrcFile
 from entity import Entity
 
-class ship:
-    def __init__(self, base) -> None:
 
+class ship:
+    def __init__(self, base):
         self.base = base
 
-        self.shipObject = Entity(base, collider='dynamic')
-        self.base.cam.reparentTo(self.shipObject.entity)
-
-
-        #important stuff
-        self.CamPos = Vec3(0.0, 0.0, 0.0)
-        self.forward = Vec3(0.0, 1.0, 0.0)
-        self.BaseSpeed = 3
-        self.Speed = 20
-        self.turningRadius = 40
-
+        self.camera_pos = Vec3(0.0, 0.0, 2.0)
+        self.camera_front = Vec3(0.0, 1.0, 0.0)
+        self.camera_right = Vec3(-1.0, 0.0, 0.0)
 
         self.mouse_sensitivity = 0.1
         self.jaw = 0
         self.pitch = 0
+        self.MaxSpeed = 40
+        self.Speed = 5
+        self.acceleration = 0.5
 
 
+        base.disableMouse()
         self.globalClock = ClockObject().getGlobalClock()
-        self.base.taskMgr.add(self.update_cam, "updates the camera")
+        base.taskMgr.add(self.updateCam, "update_cam")
 
-        self.mouse_hidden = base.config.GetBool("cursor-hidden", 0)
         base.accept("escape", self.toggleMouseVis)
+        self.mouse_hidden = base.config.GetBool("cursor-hidden", 0)
 
 
-        pass
+        self.ShipObject = Entity(base, position = (0,10,-2),rotation = (0,90,0), collider = 'dynamic', color=(0.2, 0.2, 0.2, 1), model='models/ship.obj')
+        self.ShipObject.entity.reparentTo(self.base.camera)
+
 
     def processMouseMovement(self, x_offset, y_offset, constrain_pitch=True):
         x_offset *= self.mouse_sensitivity
@@ -58,6 +56,7 @@ class ship:
         self.camera_front = front.normalized()
         self.camera_right = (self.camera_front.cross(Vec3(0.0, 0.0, 1.0))).normalized()
 
+
     def toggleMouseVis(self):
         if (self.mouse_hidden):
             props = WindowProperties()
@@ -70,10 +69,11 @@ class ship:
             self.base.win.requestProperties(props)
             self.mouse_hidden = True
 
-    def update_cam(self, task):
+
+    def updateCam(self, task):
         dt = self.globalClock.dt
 
-
+        # mouse input
         if (self.mouse_hidden):
             md = self.base.win.getPointer(0)
             display_center = (self.base.win.getXSize() // 2, self.base.win.getYSize() // 2)
@@ -86,15 +86,32 @@ class ship:
 
 
 
-        velocity = self.forward * self.BaseSpeed * dt
+        self.camera_pos += self.camera_front * self.Speed * dt
 
-        key_down = self.base.mouseWatcherNode.isButtonDown
-        if key_down("w"):
-            velocity += self.forward * self.BaseSpeed * self.Speed * dt
-            print(velocity)
+        """while key_down("w"):
+            if self.DefaultSpeed < self.MaxSpeed:
+                self.DefaultSpeed += self.acceleration
         
-        self.shipObject.collider.node().setLinearVelocity(velocity * 40.0)
-        self.base.camera.setPos(self.CamPos)
+        while key_down("s"):
+            if self.DefaultSpeed >= 0:
+                self.DefaultSpeed -= self.acceleration"""
 
+        # keyboard input
+        key_down = self.base.mouseWatcherNode.isButtonDown
+        if key_down("a"):
+            self.camera_pos -= self.camera_right * self.MaxSpeed * dt
+        if key_down("d"):
+            self.camera_pos += self.camera_right * self.MaxSpeed * dt
+        if key_down("w"):
+            if self.Speed < self.MaxSpeed:
+                self.Speed += self.acceleration
+        if key_down("s"):
+            if self.Speed >= -2:
+                self.Speed -= self.acceleration
+
+
+        # update camera vectors
+        self.base.camera.setPos(self.camera_pos)
+        self.base.camera.look_at(self.camera_pos + self.camera_front)
 
         return task.cont
