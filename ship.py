@@ -1,61 +1,32 @@
-from math import sin, cos, radians
-from panda3d.core import Vec3, ClockObject, WindowProperties, loadPrcFile
-from entity import Entity
+from panda3d.core import ClockObject, WindowProperties, NodePath
 
 
-class ship:
+class Ship(NodePath):
     def __init__(self, base):
-        self.base = base
+        super().__init__("Ship")
 
-        self.camera_pos = Vec3(0.0, 0.0, 2.0)
-        self.camera_front = Vec3(0.0, 1.0, 0.0)
-        self.camera_right = Vec3(-1.0, 0.0, 0.0)
+        self.base = base
+        
+        self.ship_dummy = NodePath("ship_dummy")
+        self.ship_dummy.reparentTo(self)
+
+        self.ship_object = base.loader.loadModel("models/ship.egg")
+        self.ship_object.reparentTo(self.ship_dummy)
 
         self.mouse_sensitivity = 0.1
-        self.jaw = 0
-        self.pitch = 0
-        self.MaxSpeed = 40
-        self.Speed = 5
-        self.acceleration = 0.5
 
+        self.cur_jaw = 0
+        self.cur_pitch = 0
+        self.target_jaw = 0
+        self.target_pitch = 0
 
-        base.disableMouse()
         self.globalClock = ClockObject().getGlobalClock()
-        base.taskMgr.add(self.updateCam, "update_cam")
+        base.taskMgr.add(self.updateShip, "update_cam")
 
         base.accept("escape", self.toggleMouseVis)
         self.mouse_hidden = base.config.GetBool("cursor-hidden", 0)
 
-
-        self.ShipObject = Entity(base, position = (0,10,-2),rotation = (0,90,0), collider = 'dynamic', color=(0.2, 0.2, 0.2, 1), model='models/ship.obj')
-        self.ShipObject.entity.reparentTo(self.base.camera)
-
-
-    def processMouseMovement(self, x_offset, y_offset, constrain_pitch=True):
-        x_offset *= self.mouse_sensitivity
-        y_offset *= self.mouse_sensitivity
-
-        self.jaw += x_offset
-        self.pitch += y_offset
-
-        if constrain_pitch:
-            if self.pitch > 89:
-                self.pitch = 89
-            if self.pitch < -89:
-                self.pitch = -89
-
-        self.updateCameraVectors()
-
-
-    def updateCameraVectors(self):
-        front = Vec3(0.0, 1.0, 0.0)
-        front.x = cos(radians(self.jaw)) * cos(radians(self.pitch))
-        front.z = sin(radians(self.pitch))
-        front.y = sin(radians(self.jaw)) * cos(radians(self.pitch))
-
-        self.camera_front = front.normalized()
-        self.camera_right = (self.camera_front.cross(Vec3(0.0, 0.0, 1.0))).normalized()
-
+        self.reparentTo(base.render)
 
     def toggleMouseVis(self):
         if (self.mouse_hidden):
@@ -69,8 +40,14 @@ class ship:
             self.base.win.requestProperties(props)
             self.mouse_hidden = True
 
+    def processMouseMovement(self, x_offset, y_offset):
+        x_offset *= self.mouse_sensitivity
+        y_offset *= self.mouse_sensitivity
 
-    def updateCam(self, task):
+        self.target_jaw += x_offset
+        self.target_pitch += y_offset
+
+    def updateShip(self, task):
         dt = self.globalClock.dt
 
         # mouse input
@@ -84,34 +61,10 @@ class ship:
 
             self.base.win.movePointer(0, display_center[0], display_center[1])
 
+        self.cur_jaw = (self.target_jaw - self.cur_jaw) / 2
+        self.cur_pitch = (self.target_pitch - self.cur_pitch) / 2
 
-
-        self.camera_pos += self.camera_front * self.Speed * dt
-
-        """while key_down("w"):
-            if self.DefaultSpeed < self.MaxSpeed:
-                self.DefaultSpeed += self.acceleration
-        
-        while key_down("s"):
-            if self.DefaultSpeed >= 0:
-                self.DefaultSpeed -= self.acceleration"""
-
-        # keyboard input
-        key_down = self.base.mouseWatcherNode.isButtonDown
-        if key_down("a"):
-            self.camera_pos -= self.camera_right * self.MaxSpeed * dt
-        if key_down("d"):
-            self.camera_pos += self.camera_right * self.MaxSpeed * dt
-        if key_down("w"):
-            if self.Speed < self.MaxSpeed:
-                self.Speed += self.acceleration
-        if key_down("s"):
-            if self.Speed >= -2:
-                self.Speed -= self.acceleration
-
-
-        # update camera vectors
-        self.base.camera.setPos(self.camera_pos)
-        self.base.camera.look_at(self.camera_pos + self.camera_front)
+        self.ship_dummy.setR(self.cur_jaw)
+        self.ship_object.setP(self.cur_pitch)
 
         return task.cont

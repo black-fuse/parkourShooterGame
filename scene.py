@@ -4,7 +4,7 @@ from panda3d.bullet import BulletWorld, BulletDebugNode
 from direct.filter.CommonFilters import CommonFilters
 from camera import CameraController
 from entity import Entity
-from ship import ship
+from ship import Ship
 from lighting import Lighting
 import random
 
@@ -15,22 +15,29 @@ class scene():
 
         Lighting(base)
         #CameraController(base)
-        ship(base)
+
+        base.disableMouse()
+        Ship(base)
+
+        base.cam.setPos(-4, 10, 5)
+        base.cam.lookAt(0, 0, 0)
+
+
         cf = CommonFilters(base.win, base.cam)
-        cf.setBloom(intensity = 5)
+        cf.setBloom(intensity = 10)
         ShowBase.setBackgroundColor(base, 0.0, 0.0, 0.0, 1.0)
 
         base.bullet_world = BulletWorld()
         base.bullet_world.setGravity(Vec3(0, 0, -9.81))
         
-        skybox = Entity(base, scale = (1000, 1000, 1000), texture='textures/skybox/cubemap.png', model = "models/skybox.egg")
+        skybox = Entity(base, scale = (1000, 1000, 1000), texture='textures/skybox/cubemap.png', model = "models/skybox.egg", color = (0.1, 0.1, 0.1, 1))
         skybox.entity.setTwoSided(True)
 
-        Entity(base, position = (0,10,-2),rotation = (0,90,0), collider = 'dynamic', color=(0.2, 0.2, 0.2, 1), model='models/ship.obj')
+        #Entity(base, position = (0,10,-2),rotation = (0,90,0), collider = 'dynamic', color=(0.2, 0.2, 0.2, 1), model='models/ship.obj')
 
 
-        for x in range(500):
-            Entity(base, model='models/sphere', position=(random.randint(-100,100), random.randint(-100,100), random.randint(-100,100)), scale=(0.2,0.2,0.2), color = (1, random.uniform(0.8,1), random.uniform(0.5,1), 1))
+        for x in range(1):
+            Entity(base, model='models/sphere', position=(random.randint(-500,500), random.randint(-500,500), random.randint(-500,500)), scale=(0.2,0.2,0.2), color = (1, random.uniform(0.8,1), random.uniform(0.5,1), 1))
 
         
         #Lighting(self, False)
