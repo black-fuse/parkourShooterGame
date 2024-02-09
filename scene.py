@@ -19,13 +19,12 @@ class scene():
         base.disableMouse()
         Ship(base)
 
-        base.cam.setPos(-4, 10, 5)
-        base.cam.lookAt(0, 0, 0)
-
 
         cf = CommonFilters(base.win, base.cam)
         cf.setBloom(intensity = 10)
         ShowBase.setBackgroundColor(base, 0.0, 0.0, 0.0, 1.0)
+
+        Entity(base, position=(0,0,-100), scale=(1000,1000,1),color=(1,0,0,1))
 
         base.bullet_world = BulletWorld()
         base.bullet_world.setGravity(Vec3(0, 0, -9.81))
@@ -35,9 +34,10 @@ class scene():
 
         #Entity(base, position = (0,10,-2),rotation = (0,90,0), collider = 'dynamic', color=(0.2, 0.2, 0.2, 1), model='models/ship.obj')
 
+        Entity(base, model='models/zup-axis')
 
-        for x in range(1):
-            Entity(base, model='models/sphere', position=(random.randint(-500,500), random.randint(-500,500), random.randint(-500,500)), scale=(0.2,0.2,0.2), color = (1, random.uniform(0.8,1), random.uniform(0.5,1), 1))
+        for x in range(500):
+            Entity(base, model='models/sphere', position=(random.randint(-500,500), random.randint(-500,500), random.randint(-500,500)), scale=(0.5,0.5,0.5), color = (1, random.uniform(0.8,1), random.uniform(0.5,1), 1))
 
         
         #Lighting(self, False)

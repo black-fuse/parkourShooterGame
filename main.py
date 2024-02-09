@@ -35,7 +35,7 @@ class window(ShowBase):
             self.bullet_world.setDebugNode(debugNP.node())
             
 
-        self.OpenMenu()
+        self.LoadScene()
     
     def OpenMenu(self):
         self.StartButton = DirectButton(text="start",command=self.LoadScene,scale=0.3)
@@ -47,8 +47,11 @@ class window(ShowBase):
         self.camLens.setFov(90.0)
         self.camLens.setNearFar(0.1, 10000.0)
         scene(self)
-        self.StartButton.destroy()
-        self.QuitButton.destroy()
+        try:
+            self.StartButton.destroy()
+            self.QuitButton.destroy()
+        except:
+            pass
 
 
     def update(self, task):

@@ -1,4 +1,10 @@
-from panda3d.core import ClockObject, WindowProperties, NodePath
+from panda3d.core import ClockObject, WindowProperties, NodePath, Vec3
+
+
+plane_turn_sensitivity = 0.1
+plane_max_turn_speed = 4.0
+plane_turn_smoothness = 10.0
+thruster_strength = 0.05
 
 
 class Ship(NodePath):
@@ -13,12 +19,21 @@ class Ship(NodePath):
         self.ship_object = base.loader.loadModel("models/ship.egg")
         self.ship_object.reparentTo(self.ship_dummy)
 
-        self.mouse_sensitivity = 0.1
+        self.cam_dummy = NodePath("cam_dummy")
+        self.cam_dummy.reparentTo(self)
+
+        base.cam.reparentTo(self.cam_dummy)
+        base.cam.setPos(0.0, -20.0, 5.0)
+
+        self.cur_cam_jaw = 0
 
         self.cur_jaw = 0
         self.cur_pitch = 0
         self.target_jaw = 0
         self.target_pitch = 0
+
+        self.forward = Vec3(0.0, -1.0, 0.0)
+        self.velocity = Vec3(0.0, -1.0, 0.0)
 
         self.globalClock = ClockObject().getGlobalClock()
         base.taskMgr.add(self.updateShip, "update_cam")
@@ -41,8 +56,8 @@ class Ship(NodePath):
             self.mouse_hidden = True
 
     def processMouseMovement(self, x_offset, y_offset):
-        x_offset *= self.mouse_sensitivity
-        y_offset *= self.mouse_sensitivity
+        x_offset *= plane_turn_sensitivity
+        y_offset *= plane_turn_sensitivity
 
         self.target_jaw += x_offset
         self.target_pitch += y_offset
@@ -61,10 +76,22 @@ class Ship(NodePath):
 
             self.base.win.movePointer(0, display_center[0], display_center[1])
 
-        self.cur_jaw = (self.target_jaw - self.cur_jaw) / 2
-        self.cur_pitch = (self.target_pitch - self.cur_pitch) / 2
+        self.cur_jaw += min((self.target_jaw - self.cur_jaw) / plane_turn_smoothness, plane_max_turn_speed)
+        self.cur_pitch += min((self.target_pitch - self.cur_pitch) / plane_turn_smoothness, plane_max_turn_speed)
 
         self.ship_dummy.setR(self.cur_jaw)
         self.ship_object.setP(self.cur_pitch)
+
+        self.setPos(self.getPos() + self.velocity)
+
+        self.forward = self.base.render.getRelativeVector(self.ship_object, Vec3(0.0, -1.0, 0.0))
+
+        self.velocity = (self.forward * thruster_strength + self.velocity).normalized()
+
+
+        self.cur_cam_jaw += (self.cur_jaw - self.cur_cam_jaw) / 20
+
+        self.cam_dummy.lookAt((self.forward + self.velocity).normalized())
+        self.cam_dummy.setR(-self.cur_cam_jaw)
 
         return task.cont
