@@ -1,4 +1,5 @@
 from panda3d.core import ClockObject, WindowProperties, NodePath, Vec3
+from entity import Entity
 
 
 plane_turn_sensitivity = 0.1
@@ -16,14 +17,17 @@ class Ship(NodePath):
         self.ship_dummy = NodePath("ship_dummy")
         self.ship_dummy.reparentTo(self)
 
+        axis = Entity(base, model='models/zup-axis')
+        axis.entity.reparentTo(self.ship_dummy)
+
         self.ship_object = base.loader.loadModel("models/ship.egg")
         self.ship_object.reparentTo(self.ship_dummy)
 
         self.cam_dummy = NodePath("cam_dummy")
         self.cam_dummy.reparentTo(self)
 
-        base.cam.reparentTo(self.cam_dummy)
-        base.cam.setPos(0.0, -20.0, 5.0)
+        base.cam.reparentTo(self.ship_object)
+        base.cam.setPos(0.0, 20.0, 5.0)
 
         self.cur_cam_jaw = 0
 
@@ -40,6 +44,8 @@ class Ship(NodePath):
 
         base.accept("escape", self.toggleMouseVis)
         self.mouse_hidden = base.config.GetBool("cursor-hidden", 0)
+
+        base.accept("p", self.teleport)
 
         self.reparentTo(base.render)
 
@@ -61,6 +67,9 @@ class Ship(NodePath):
 
         self.target_jaw += x_offset
         self.target_pitch += y_offset
+    
+    def teleport(self):
+        self.setPos(0, 0, 0)
 
     def updateShip(self, task):
         dt = self.globalClock.dt
@@ -80,7 +89,17 @@ class Ship(NodePath):
         self.cur_pitch += min((self.target_pitch - self.cur_pitch) / plane_turn_smoothness, plane_max_turn_speed)
 
         self.ship_dummy.setR(self.cur_jaw)
+        print(self.ship_dummy.getR())
         self.ship_object.setP(self.cur_pitch)
+        self.ship_dummy.setH((self.forward + self.velocity).normalized().x)
+
+
+        """thing = Vec3(0, self.cur_pitch, self.cur_jaw) + self.forward
+        self.ship_object.setHpr(self.base.render.getRelativeVector(self.ship_dummy, thing))"""
+        
+        #print(f'jaw = {self.cur_jaw}')
+        #self.ship_object.setP(self.cur_pitch)
+        #print(f'pitch = {self.cur_pitch}')
 
         self.setPos(self.getPos() + self.velocity)
 
@@ -91,7 +110,7 @@ class Ship(NodePath):
 
         self.cur_cam_jaw += (self.cur_jaw - self.cur_cam_jaw) / 20
 
-        self.cam_dummy.lookAt((self.forward + self.velocity).normalized())
-        self.cam_dummy.setR(-self.cur_cam_jaw)
+        self.base.cam.lookAt((self.forward + self.velocity).normalized())
+        self.cam_dummy.setR(self.cur_cam_jaw)
 
         return task.cont
